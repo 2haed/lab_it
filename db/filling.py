@@ -3,7 +3,6 @@ import pandas as pd
 import regex as re
 import psycopg2
 from sqlalchemy import create_engine
-
 from sql_commands import query_create_tables
 
 
@@ -100,6 +99,10 @@ def fill_values(airlines: pd.DataFrame, aircraft: pd.DataFrame, airports: pd.Dat
         print(ex)
 
 
-if __name__ == '__main__':
+def main():
     create_tables()
     fill_values(airlines(), aircraft(), airports(), cargo_transportation(), passenger_transportation())
+
+
+if __name__ == '__main__':
+    main()
