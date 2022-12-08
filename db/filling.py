@@ -1,21 +1,19 @@
 from db.credentials import con
 import pandas as pd
 import regex as re
-import psycopg2
 from sqlalchemy import create_engine
-from sql_commands import query_create_tables
 
 
 def airports() -> pd.DataFrame:
     df = pd.read_csv('../data/airports.csv', encoding='utf-8', header=None)
     df.rename(
-        columns={df.columns[0]: 'city', df.columns[1]: 'document', df.columns[2]: 'company',
+        columns={df.columns[0]: 'airport_name', df.columns[1]: 'document', df.columns[2]: 'company',
                  df.columns[3]: 'letter'}, inplace=True)
     df.dropna(inplace=True)
-    df.city = df.city.apply(lambda row: ' '.join(
+    df.airport_name = df.airport_name.apply(lambda row: ' '.join(
         filter(lambda x: x != 'км' and x not in re.findall(r"[-+]?(?:\d*\,\d+|\d+)", x) and len(x) > 2,
                row.split()[:3])))
-    df.city = df.city.apply(lambda row: row.strip().title())
+    df.airport_name = df.airport_name.apply(lambda row: row.strip().title())
     return df
 
 
@@ -31,51 +29,43 @@ def aircraft() -> pd.DataFrame:
 def airlines() -> pd.DataFrame:
     df = pd.read_csv('../data/airlines.csv', header=None, encoding='utf-8')
     df.rename(columns={df.columns[0]: 'column_name', df.columns[1]: 'company_short_name',
-                       df.columns[2]: 'company_name', df.columns[3]: 'city',
+                       df.columns[2]: 'company_name', df.columns[3]: 'airport_name',
                        df.columns[4]: 'planes'}, inplace=True)
     df.planes = df.planes.str.split(',')
     df = df.explode('planes')
     df = df[df['planes'].notna()]
     df.planes = df.planes.apply(lambda row: row.strip())
     df.reset_index(inplace=True)
+    df.planes = df.planes.str.split('  ')
+    planes = pd.DataFrame(df["planes"].to_list(), columns=['plane', 'quantity'])
+    planes.quantity = planes.quantity.apply(lambda row: row.lstrip('(').rstrip(')'))
+    df.drop('planes', inplace=True, axis=1)
+    df = pd.concat([df, planes], axis=1)
     return df.drop(['index'], axis=1).rename(columns={'level_0': 'index'})
 
 
 def cargo_transportation() -> pd.DataFrame:
     df = pd.read_csv('../data/cargo transportation.csv', encoding='utf-8', on_bad_lines='skip',
-                     delimiter=';')
-    names = 'city', 'year', 'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', \
+                     delimiter=';', decimal='.', thousands='.')
+    names = 'airport_name', 'year', 'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', \
             'october', 'november', 'december', 'january_to_december'
     df.rename(columns={df.columns[i]: names[i] for i in range(15)}, inplace=True)
+    df.replace('***', 0, inplace=True)
+    df.fillna(0, inplace=True)
     return df
 
 
 def passenger_transportation() -> pd.DataFrame:
     df = pd.read_csv('../data/passenger transportation.csv', encoding='utf-8',
                      on_bad_lines='skip',
-                     delimiter=';')
-    names = 'city', 'year', 'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', \
+                     delimiter=';', decimal='.', thousands='.')
+    names = 'airport_name', 'year', 'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', \
             'october', 'november', 'december', 'january_to_december'
     df.rename(columns={df.columns[i]: names[i] for i in range(15)},
               inplace=True)
+    df.replace('***', 0, inplace=True)
+    df.fillna(0, inplace=True)
     return df
-
-
-def create_tables() -> None:
-    try:
-        connection = psycopg2.connect(
-            host=con['host'],
-            user=con['user'],
-            password=con['password'],
-            database=con['database']
-        )
-        print("Connected successfully...", " ", sep='\n')
-        with connection.cursor() as cursor:
-            cursor.execute(query_create_tables)
-            connection.commit()
-    except Exception as ex:
-        print('Connection error...')
-        print(ex)
 
 
 def fill_values(airlines: pd.DataFrame, aircraft: pd.DataFrame, airports: pd.DataFrame,
@@ -100,9 +90,8 @@ def fill_values(airlines: pd.DataFrame, aircraft: pd.DataFrame, airports: pd.Dat
 
 
 def main():
-    # create_tables()
-    # fill_values(airlines(), aircraft(), airports(), cargo_transportation(), passenger_transportation())
-    passenger_transportation()
+    fill_values(airlines(), aircraft(), airports(), cargo_transportation(), passenger_transportation())
+
 
 if __name__ == '__main__':
     main()
