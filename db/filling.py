@@ -1,3 +1,5 @@
+from tabulate import tabulate
+
 from db.credentials import con
 import pandas as pd
 import regex as re
@@ -52,6 +54,9 @@ def cargo_transportation() -> pd.DataFrame:
     df.rename(columns={df.columns[i]: names[i] for i in range(15)}, inplace=True)
     df.replace('***', 0, inplace=True)
     df.fillna(0, inplace=True)
+    df.iloc[:, 2:] = df.iloc[:, 2:].apply(lambda x: x.str.replace(' ', ''))
+    df.iloc[:, 2:] = df.iloc[:, 2:].apply(lambda x: x.str.replace(',', '.')).astype(
+        float)
     return df
 
 
@@ -65,6 +70,9 @@ def passenger_transportation() -> pd.DataFrame:
               inplace=True)
     df.replace('***', 0, inplace=True)
     df.fillna(0, inplace=True)
+    df.iloc[:, 2:] = df.iloc[:, 2:].apply(lambda x: x.str.replace(' ', ''))
+    df.iloc[:, 2:] = df.iloc[:, 2:].apply(lambda x: x.str.replace(',', '.')).astype(
+        float)
     return df
 
 
