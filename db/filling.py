@@ -100,9 +100,9 @@ def fill_values(airlines: pd.DataFrame, aircraft: pd.DataFrame, airports: pd.Dat
 
 
 def main():
-    create_tables()
-    fill_values(airlines(), aircraft(), airports(), cargo_transportation(), passenger_transportation())
-
+    # create_tables()
+    # fill_values(airlines(), aircraft(), airports(), cargo_transportation(), passenger_transportation())
+    passenger_transportation()
 
 if __name__ == '__main__':
     main()

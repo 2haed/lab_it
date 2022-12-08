@@ -1,7 +1,6 @@
 import psycopg2
 from db.credentials import con
-from sql_commands import unique_planes
-
+from sql_commands import unique_planes, earliest_certificate, first_query
 
 try:
     connection = psycopg2.connect(
@@ -12,8 +11,7 @@ try:
     )
     print("Connected successfully...", " ", sep='\n')
     with connection.cursor() as cursor:
-        cursor.execute(unique_planes)
-        data = cursor.fetchone()
+        cursor.execute(first_query)
         for row in cursor:
             print(row)
 except Exception as ex:

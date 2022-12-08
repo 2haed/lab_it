@@ -16,5 +16,6 @@ query_create_tables = 'create table IF NOT EXISTS airports (index serial primary
                       'december decimal(8, 2), january_to_december decimal(8, 2)); '
 
 unique_planes = 'select distinct type from aircraft'
-earliest_certificate = 'select type, min(date) from aicraft group by type'
-# first_query = 'select company from airports, cargo_trasportation, passenger_transportation'
+earliest_certificate = 'select type from aircraft where date = (select min(date) from aircraft)'
+first_query = 'select sum(january, february, march, april, may, june, july, august, september, october, november, ' \
+              'december, january_to_december) from passenger_transportation p group by city'
